@@ -1,5 +1,9 @@
 ---
 title: "SandScaper_analysis"
+format: 
+  html: 
+    toc: true
+    embed-resources: true
 ---
 
 # Preprocessing
@@ -21,9 +25,9 @@ library(knitr)
 ```{r message=FALSE}
 # read data
 
-data_raw <- read_csv("data/times.csv")
+data_raw <- read_csv("data/data.csv")
 
-data_raw
+head(data_raw)
 ```
 
 ## define factors
@@ -36,20 +40,33 @@ data_pp <- data_raw
 data_pp <- data_pp %>%
   mutate(
     id = factor(id),
-    system = factor(system)
-   # virtual_weight = factor(virtual_weight) # add image here
+    system = factor(system),
+    image = factor(image)
   )
 ```
 
-
-## overview data
+## Calculate UEQ scores (take means and subtract 4)
 
 ```{r}
-# inspect data distribution
-
-ggplot(data_pp, aes(time_s)) +
-  geom_histogram()
+data_long <- data_pp %>%
+  group_by(id, system, image, age, gender, pre_experience, creativity, time_s, result_satisfaction) %>%
+  summarise(
+    UEQ_Efficiency_Score = mean(c(UEQ_Efficiency_1, UEQ_Efficiency_2, UEQ_Efficiency_3, UEQ_Efficiency_4)) - 4,
+    UEQ_Perspicuity_Score = mean(c(UEQ_Perspicuity_1, UEQ_Perspicuity_2, UEQ_Perspicuity_3, UEQ_Perspicuity_4)) - 4,
+    UEQ_Dependability_Score = mean(c(UEQ_Dependability_1, UEQ_Dependability_2, UEQ_Dependability_3, UEQ_Dependability_4)) - 4,
+    UEQ_Stimulation_Score = mean(c(UEQ_Stimulation_1, UEQ_Stimulation_2, UEQ_Stimulation_3, UEQ_Stimulation_4)) - 4,
+    UEQ_Novelty_Score = mean(c(UEQ_Novelty_1, UEQ_Novelty_2, UEQ_Novelty_3, UEQ_Novelty_4)) - 4,
+    UEQ_Haptics_Score = mean(c(UEQ_Haptics_1, UEQ_Haptics_2, UEQ_Haptics_3, UEQ_Haptics_4)) - 4,
+    UEQ_Adaptability_Score = mean(c(UEQ_Adaptability_1, UEQ_Adaptability_2, UEQ_Adaptability_3, UEQ_Adaptability_4)) - 4,
+    UEQ_Usefulness_Score = mean(c(UEQ_Usefulness_1, UEQ_Usefulness_2, UEQ_Usefulness_3, UEQ_Usefulness_4)) - 4,
+    UEQ_IntuitiveUse_Score = mean(c(UEQ_IntuitiveUse_1, UEQ_IntuitiveUse_2, UEQ_IntuitiveUse_3, UEQ_IntuitiveUse_4)) - 4,
+    UEQ_Clarity_Score = mean(c(UEQ_Clarity_1, UEQ_Clarity_2, UEQ_Clarity_3, UEQ_Clarity_4)) - 4,
+    
+    UEQ_Overall_Score = mean(c(UEQ_Efficiency_1, UEQ_Efficiency_2, UEQ_Efficiency_3, UEQ_Efficiency_4, UEQ_Perspicuity_1, UEQ_Perspicuity_2, UEQ_Perspicuity_3, UEQ_Perspicuity_4, UEQ_Dependability_1, UEQ_Dependability_2, UEQ_Dependability_3, UEQ_Dependability_4, UEQ_Stimulation_1, UEQ_Stimulation_2, UEQ_Stimulation_3, UEQ_Stimulation_4, UEQ_Novelty_1, UEQ_Novelty_2, UEQ_Novelty_3, UEQ_Novelty_4, UEQ_Haptics_1, UEQ_Haptics_2, UEQ_Haptics_3, UEQ_Haptics_4, UEQ_Adaptability_1, UEQ_Adaptability_2, UEQ_Adaptability_3, UEQ_Adaptability_4, UEQ_Usefulness_1, UEQ_Usefulness_2, UEQ_Usefulness_3, UEQ_Usefulness_4, UEQ_Clarity_1, UEQ_Clarity_2, UEQ_Clarity_3, UEQ_Clarity_4)) - 4,
+  ) %>%
+  ungroup()
 ```
+
 # Statistical Analyses
 
 
@@ -65,70 +82,267 @@ library(MetBrewer)
 library(viridis)
 library(ggsci)
 library(ggpubr)
-```
 
-
-## Preprocessing descriptives and mean performance
-
-```{r}
-descriptives <- describe(data_pp)
-kable(descriptives, digits = 2)
-```
-
-## Analyses of Time
-
-## Visualize
-
-```{r}
-my_lineplot <- function(data, x, y, group, title, xlab, ylab, grouplab, xticklabs, groupticklabs) {
-  lineplot <- ggline(
+# plot functions
+my_boxplot <- function(data, x, y, title, xlab, ylab, xticklabs) {
+  my_plot <- ggboxplot(
     data,
     x = x, 
     y = y, 
-    color = group,
-    linetype = group,
-    shape = group,
-    add = "mean_ci",
+    fill = x,
+    add = "jitter",
+    ci = 0.95,
+    title = title,
+    xlab = xlab,
+    ylab = ylab,
+    size = 1
+  ) + 
+  theme(
+    axis.title.y = element_text(margin = margin(r = 10)),
+    text = element_text(size = 16)
+  ) +
+  labs(
+    fill=xlab
+  ) +
+  grids(linetype = "dashed") +
+  scale_x_discrete(labels=xticklabs) + 
+  scale_fill_discrete(type=c("#EE442F", "#63ACBE"), labels=xticklabs) +
+  scale_shape_discrete(labels=xticklabs)
+
+  return(my_plot)
+}
+
+
+my_ueq_boxplot <- function(data, x, y, group, title, xlab, ylab, xticklabs, groupticklabs) {
+  my_plot <- ggboxplot(
+    data,
+    x = x, 
+    y = y, 
+    fill = group,
+    #add = "jitter",
     ci = 0.95,
     #title = title,
     xlab = xlab,
     ylab = ylab,
     size = 1,
-    position = position_dodge(width = 0.10), 
+    # position = position_dodge(width = 0.10), 
   ) + 
   theme(
-    legend.position = "right", 
-    legend.direction = "vertical",
+    axis.text.x = element_text(angle = -45, hjust = 0.5),
     axis.title.y = element_text(margin = margin(r = 10)),
     text = element_text(size = 16)
   ) +
   labs(
-    color=grouplab,
-    linetype=grouplab,
-    shape=grouplab
+    fill=NULL,
   ) +
   grids(linetype = "dashed") +
-  scale_x_discrete(labels=xticklabs) + 
-  scale_color_discrete(type=c("#EE442F", "#63ACBE"), labels=groupticklabs) +
-  scale_shape_discrete(labels=groupticklabs) + 
-  scale_linetype_discrete(labels=groupticklabs) 
+  scale_x_discrete(labels=xticklabs) +
+  scale_fill_discrete(type=c("#EE442F", "#63ACBE"), labels=groupticklabs)
+   
+   # + 
+     # geom_rect(aes(ymin = 2, ymax = 3, xmin = -Inf, xmax = Inf),
+     #               fill = "#4c891e", alpha = 0.03) + 
+     # geom_rect(aes(ymin = 1, ymax = 2, xmin = -Inf, xmax = Inf),
+     #               fill = "#6cad2c", alpha = 0.03) + 
+     # geom_rect(aes(ymin = -1, ymax = 1, xmin = -Inf, xmax = Inf),
+     #               fill = "#ffffcc", alpha = 0.03) + 
+     # geom_rect(aes(ymin = -2, ymax = -1, xmin = -Inf, xmax = Inf),
+     #               fill = "#fb4d4b", alpha = 0.03) + 
+     # geom_rect(aes(ymin = -3, ymax = -2, xmin = -Inf, xmax = Inf),
+     #               fill = "#da311d", alpha = 0.03)
   
-    
-  return(lineplot)
+  return(my_plot)
 }
+```
+
+## Demographic data (Descriptive Data)
+
+### Age, Gender, Pre-Experience, Creativity
+```{r}
+data_long %>%
+  get_summary_stats(age, pre_experience, creativity, type="common")
+```
+
+### Gender
+
+```{r}
+summary(factor(data_long$gender))
+```
+
+## Modeling Time
+
+### Time vs System
+
+#### Visualize
+
+```{r}
+my_plot <- my_boxplot(data_long,
+    x = "system",
+    y = "time_s",
+    title = NULL,
+    ylab = "Modeling Time [seconds]",
+    xlab = "",
+    xticklabs = c("Blender", "SandScaper")
+    )
+
+ggsave(filename = "plots/time_vs_system.png", plot = my_plot)
+
+my_plot
+```
+
+#### Descriptive Data
+
+```{r}
+```
+
+#### Test
+
+```{r}
+```
+
+### Time vs Image
+
+#### Visualize
+
+```{r}
+my_plot <- my_boxplot(data_long,
+    x = "image",
+    y = "time_s",
+    title = NULL,
+    ylab = "Modeling Time [seconds]",
+    xlab = "",
+    xticklabs = c("Image A", "Image B")
+    )
+
+ggsave(filename = "plots/time_vs_image.png", plot = my_plot)
+
+my_plot
+```
+
+#### Descriptive Data
+
+```{r}
+```
+
+#### Test
+
+```{r}
+```
+
+## Result Satisfaction
+
+### Result Satisfaction vs System
+
+#### Visualize
+
+```{r}
+my_plot <- my_boxplot(data_long,
+    x = "system",
+    y = "result_satisfaction",
+    title = NULL,
+    ylab = "Result Satisfaction",
+    xlab = "",
+    xticklabs = c("Blender", "SandScaper")
+    )
+
+ggsave(filename = "plots/result_vs_system.png", plot = my_plot)
+
+my_plot
+```
+
+#### Descriptive Data
+
+```{r}
+```
+
+#### Test
+
+```{r}
+```
+
+### Result Satisfaction vs Image
+
+#### Visualize
+
+```{r}
+my_plot <- my_boxplot(data_long,
+    x = "image",
+    y = "result_satisfaction",
+    title = NULL,
+    ylab = "Result Satisfaction",
+    xlab = "",
+    xticklabs = c("Image A", "Image B")
+    )
+
+ggsave(filename = "plots/time_vs_image.png", plot = my_plot)
+
+my_plot
+```
+
+#### Descriptive Data
+
+```{r}
+```
+
+#### Test
+
+```{r}
+```
 
 
-# lineplot <- my_lineplot(data_pp,
-#     x = "system",
-#     y = "time",
-#     group = "virtual_weight",
-#     title = NULL,
-#     ylab = "Reality\njudgment",
-#     xlab = "",
-#     grouplab = "Visual Representation",
-#     xticklabs = c("Heavy Control.", "Light Control."),
-#     groupticklabs = c("Heavy Model", "Light Model")
-#     )
+## UEQ
 
-lineplot <- ggline(data_pp, system, time)
+### Single Categories
+
+#### Visualize
+
+```{r}
+
+ueq_cols <- c("UEQ_Efficiency_Score", "UEQ_Perspicuity_Score", "UEQ_Dependability_Score", "UEQ_Stimulation_Score", "UEQ_Novelty_Score", "UEQ_Haptics_Score", "UEQ_Adaptability_Score", "UEQ_Usefulness_Score", "UEQ_IntuitiveUse_Score", "UEQ_Clarity_Score")
+
+ueq_col_names <- c("Efficiency", "Perspicuity", "Dependability", "Stimulation", "Novelty", "Haptics", "Adaptability", "Usefulness", "Intuitive Use", "Clarity")
+
+data_long %>% select(id, system, ueq_cols) %>%
+  pivot_longer(., cols = ueq_cols, names_to = "Var", values_to = "Val") %>%
+  my_ueq_boxplot(
+    x = "Var",
+    y = "Val",
+    group = "system",
+    title = NULL,
+    xlab = "",
+    ylab = "UEQ Score",
+    xticklabs = ueq_col_names,
+    groupticklabs = c("Blender", "SandScaper")
+  )
+  
+  # ggplot(aes(x = Var, y = Val, fill = system)) +
+  # geom_boxplot()
+
+```
+
+#### Descriptive Data
+
+```{r}
+```
+
+#### Test
+
+```{r}
+```
+
+### Overall
+
+#### Visualize
+
+```{r}
+```
+
+#### Descriptive Data
+
+```{r}
+```
+
+#### Test
+
+```{r}
 ```
