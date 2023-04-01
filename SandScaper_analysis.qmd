@@ -1,0 +1,134 @@
+---
+title: "SandScaper_analysis"
+---
+
+# Preprocessing
+
+## Setup
+
+```{r message=FALSE}
+
+# Suppress summarise info
+options(dplyr.summarise.inform = FALSE)
+
+library(tidyverse)
+library(knitr)
+
+```
+
+## Read raw data
+
+```{r message=FALSE}
+# read data
+
+data_raw <- read_csv("data/times.csv")
+
+data_raw
+```
+
+## define factors
+
+```{r}
+data_pp <- data_raw
+
+
+# factors
+data_pp <- data_pp %>%
+  mutate(
+    id = factor(id),
+    system = factor(system)
+   # virtual_weight = factor(virtual_weight) # add image here
+  )
+```
+
+
+## overview data
+
+```{r}
+# inspect data distribution
+
+ggplot(data_pp, aes(time_s)) +
+  geom_histogram()
+```
+# Statistical Analyses
+
+
+## Setup libraries and functions
+
+```{r message=FALSE}
+library(rstatix)
+library(psych)
+library(effectsize)
+library(knitr)
+library(psychReport)
+library(MetBrewer)
+library(viridis)
+library(ggsci)
+library(ggpubr)
+```
+
+
+## Preprocessing descriptives and mean performance
+
+```{r}
+descriptives <- describe(data_pp)
+kable(descriptives, digits = 2)
+```
+
+## Analyses of Time
+
+## Visualize
+
+```{r}
+my_lineplot <- function(data, x, y, group, title, xlab, ylab, grouplab, xticklabs, groupticklabs) {
+  lineplot <- ggline(
+    data,
+    x = x, 
+    y = y, 
+    color = group,
+    linetype = group,
+    shape = group,
+    add = "mean_ci",
+    ci = 0.95,
+    #title = title,
+    xlab = xlab,
+    ylab = ylab,
+    size = 1,
+    position = position_dodge(width = 0.10), 
+  ) + 
+  theme(
+    legend.position = "right", 
+    legend.direction = "vertical",
+    axis.title.y = element_text(margin = margin(r = 10)),
+    text = element_text(size = 16)
+  ) +
+  labs(
+    color=grouplab,
+    linetype=grouplab,
+    shape=grouplab
+  ) +
+  grids(linetype = "dashed") +
+  scale_x_discrete(labels=xticklabs) + 
+  scale_color_discrete(type=c("#EE442F", "#63ACBE"), labels=groupticklabs) +
+  scale_shape_discrete(labels=groupticklabs) + 
+  scale_linetype_discrete(labels=groupticklabs) 
+  
+    
+  return(lineplot)
+}
+
+
+# lineplot <- my_lineplot(data_pp,
+#     x = "system",
+#     y = "time",
+#     group = "virtual_weight",
+#     title = NULL,
+#     ylab = "Reality\njudgment",
+#     xlab = "",
+#     grouplab = "Visual Representation",
+#     xticklabs = c("Heavy Control.", "Light Control."),
+#     groupticklabs = c("Heavy Model", "Light Model")
+#     )
+
+lineplot <- ggline(data_pp, system, time)
+```
