@@ -200,6 +200,9 @@ my_plot
 #### Descriptive Data
 
 ```{r}
+data_long %>%
+  group_by(system) %>%
+  get_summary_stats(time_s, type = "common")
 ```
 
 #### Test
@@ -229,6 +232,9 @@ my_plot
 #### Descriptive Data
 
 ```{r}
+data_long %>%
+  group_by(image) %>%
+  get_summary_stats(time_s, type = "common")
 ```
 
 #### Test
@@ -260,6 +266,9 @@ my_plot
 #### Descriptive Data
 
 ```{r}
+data_long %>%
+  group_by(system) %>%
+  get_summary_stats(result_satisfaction, type = "common")
 ```
 
 #### Test
@@ -289,6 +298,9 @@ my_plot
 #### Descriptive Data
 
 ```{r}
+data_long %>%
+  group_by(image) %>%
+  get_summary_stats(result_satisfaction, type = "common")
 ```
 
 #### Test
@@ -358,6 +370,9 @@ my_plot
 #### Descriptive Data
 
 ```{r}
+data_long %>%
+  group_by(system) %>%
+  get_summary_stats(ueq_cols, type = "common")
 ```
 
 #### Test
@@ -424,6 +439,9 @@ my_plot
 #### Descriptive Data
 
 ```{r}
+data_long %>%
+  group_by(image) %>%
+  get_summary_stats(ueq_cols, type = "common")
 ```
 
 #### Test
@@ -455,6 +473,9 @@ my_plot
 #### Descriptive Data
 
 ```{r}
+data_long %>%
+  group_by(system) %>%
+  get_summary_stats(UEQ_Overall_Score, type = "common")
 ```
 
 #### Test
@@ -484,6 +505,9 @@ my_plot
 #### Descriptive Data
 
 ```{r}
+data_long %>%
+  group_by(image) %>%
+  get_summary_stats(UEQ_Overall_Score, type = "common")
 ```
 
 #### Test
