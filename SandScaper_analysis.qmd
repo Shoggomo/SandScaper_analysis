@@ -81,6 +81,7 @@ library(MetBrewer)
 library(viridis)
 library(ggsci)
 library(ggpubr)
+library(MASS)
 
 # plot functions
 my_boxplot <- function(data, x, y, title, xlab, ylab, xticklabs) {
@@ -160,7 +161,7 @@ my_ueq_boxplot <- function(data, x, y, group, title, xlab, ylab, xticklabs, grou
 
 ```{r}
 data_long %>%
-  select(id, age, pre_experience, creativity) %>%
+  dplyr::select(id, age, pre_experience, creativity) %>%
   distinct() %>%
   get_summary_stats(age, pre_experience, creativity, type="common")
 ```
@@ -169,7 +170,7 @@ data_long %>%
 
 ```{r}
 data_long %>%
-  select(id, gender) %>%
+  dplyr::select(id, gender) %>%
   distinct() %>%
   "$"(gender) %>%
   factor() %>%
@@ -203,11 +204,13 @@ my_plot
 data_long %>%
   group_by(system) %>%
   get_summary_stats(time_s, type = "common")
+
 ```
 
 #### Test
 
 ```{r}
+wilcox.test(time_s ~ system, data = data_long, paired = TRUE)
 ```
 
 ### Time vs Image
@@ -240,6 +243,7 @@ data_long %>%
 #### Test
 
 ```{r}
+wilcox.test(time_s ~ image, data = data_long, paired = TRUE)
 ```
 
 ## Result Satisfaction
@@ -274,6 +278,7 @@ data_long %>%
 #### Test
 
 ```{r}
+wilcox.test(result_satisfaction ~ system, data = data_long, paired = TRUE)
 ```
 
 ### Result Satisfaction vs Image
@@ -306,6 +311,7 @@ data_long %>%
 #### Test
 
 ```{r}
+wilcox.test(result_satisfaction ~ image, data = data_long, paired = TRUE)
 ```
 
 ## UEQ Single Categories
@@ -330,7 +336,7 @@ xticklabs <- ueq_col_names
 groupticklabs <- c("Blender", "SandScaper")
 
 
-my_plot <- data_long %>% select(id, system, all_of(ueq_cols)) %>%
+my_plot <- data_long %>% dplyr::select(id, system, all_of(ueq_cols)) %>%
   pivot_longer(., cols = all_of(ueq_cols), names_to = "Var", values_to = "Val") %>%
   ggplot(aes_string(
     x=x, 
@@ -375,11 +381,6 @@ data_long %>%
   get_summary_stats(ueq_cols, type = "common")
 ```
 
-#### Test
-
-```{r}
-```
-
 ### UEQ Single Categories vs Image
 
 #### Visualize
@@ -399,7 +400,7 @@ xticklabs <- ueq_col_names
 groupticklabs <- c("Image A", "Image A")
 
 
-my_plot <- data_long %>% select(id, image, all_of(ueq_cols)) %>%
+my_plot <- data_long %>% dplyr::select(id, image, all_of(ueq_cols)) %>%
   pivot_longer(., cols = all_of(ueq_cols), names_to = "Var", values_to = "Val") %>%
   ggplot(aes_string(
     x=x, 
@@ -444,11 +445,6 @@ data_long %>%
   get_summary_stats(ueq_cols, type = "common")
 ```
 
-#### Test
-
-```{r}
-```
-
 ## UEQ Overall
 
 ### UEQ Overall vs System
@@ -481,6 +477,7 @@ data_long %>%
 #### Test
 
 ```{r}
+wilcox.test(UEQ_Overall_Score ~ system, data = data_long, paired = TRUE)
 ```
 
 ### UEQ Overall vs Image
@@ -513,4 +510,5 @@ data_long %>%
 #### Test
 
 ```{r}
+wilcox.test(UEQ_Overall_Score ~ image, data = data_long, paired = TRUE)
 ```
