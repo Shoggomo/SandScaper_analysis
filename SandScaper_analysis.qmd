@@ -69,7 +69,6 @@ data_long <- data_pp %>%
 
 # Statistical Analyses
 
-
 ## Setup libraries and functions
 
 ```{r message=FALSE}
@@ -112,7 +111,7 @@ my_boxplot <- function(data, x, y, title, xlab, ylab, xticklabs) {
   return(my_plot)
 }
 
-
+# unused
 my_ueq_boxplot <- function(data, x, y, group, title, xlab, ylab, xticklabs, groupticklabs) {
   my_plot <- ggboxplot(
     data,
@@ -158,15 +157,23 @@ my_ueq_boxplot <- function(data, x, y, group, title, xlab, ylab, xticklabs, grou
 ## Demographic data (Descriptive Data)
 
 ### Age, Gender, Pre-Experience, Creativity
+
 ```{r}
 data_long %>%
+  select(id, age, pre_experience, creativity) %>%
+  distinct() %>%
   get_summary_stats(age, pre_experience, creativity, type="common")
 ```
 
 ### Gender
 
 ```{r}
-summary(factor(data_long$gender))
+data_long %>%
+  select(id, gender) %>%
+  distinct() %>%
+  "$"(gender) %>%
+  factor() %>%
+  summary()
 ```
 
 ## Modeling Time
@@ -274,7 +281,7 @@ my_plot <- my_boxplot(data_long,
     xticklabs = c("Image A", "Image B")
     )
 
-ggsave(filename = "plots/time_vs_image.png", plot = my_plot)
+ggsave(filename = "plots/result_vs_image.png", plot = my_plot)
 
 my_plot
 ```
@@ -289,10 +296,9 @@ my_plot
 ```{r}
 ```
 
+## UEQ Single Categories
 
-## UEQ
-
-### Single Categories
+### UEQ Single Categories vs System
 
 #### Visualize
 
@@ -302,22 +308,51 @@ ueq_cols <- c("UEQ_Efficiency_Score", "UEQ_Perspicuity_Score", "UEQ_Dependabilit
 
 ueq_col_names <- c("Efficiency", "Perspicuity", "Dependability", "Stimulation", "Novelty", "Haptics", "Adaptability", "Usefulness", "Intuitive Use", "Clarity")
 
-data_long %>% select(id, system, ueq_cols) %>%
-  pivot_longer(., cols = ueq_cols, names_to = "Var", values_to = "Val") %>%
-  my_ueq_boxplot(
-    x = "Var",
-    y = "Val",
-    group = "system",
-    title = NULL,
-    xlab = "",
-    ylab = "UEQ Score",
-    xticklabs = ueq_col_names,
-    groupticklabs = c("Blender", "SandScaper")
-  )
-  
-  # ggplot(aes(x = Var, y = Val, fill = system)) +
-  # geom_boxplot()
+x <- "Var"
+y <- "Val"
+group <- "system"
+title <- NULL
+xlab <- ""
+ylab <- "UEQ Score"
+xticklabs <- ueq_col_names
+groupticklabs <- c("Blender", "SandScaper")
 
+
+my_plot <- data_long %>% select(id, system, all_of(ueq_cols)) %>%
+  pivot_longer(., cols = all_of(ueq_cols), names_to = "Var", values_to = "Val") %>%
+  ggplot(aes_string(
+    x=x, 
+    y=y,
+    fill=group
+  )) +
+  geom_boxplot(
+    width = 0.6,
+    position=position_dodge(0.7),
+  ) + 
+  geom_dotplot(
+    binaxis  = "y", 
+    binwidth = 0.2,
+    stackdir = "center",
+    position = position_dodge(0.7)
+  ) +
+  labs(
+    x=xlab,
+    y=ylab,
+    fill=NULL
+  ) + 
+  theme_pubr() +
+  theme(
+    axis.text.x = element_text(angle = -90, hjust = 0, vjust = 0.5),
+    axis.title.y = element_text(margin = margin(r = 10)),
+    text = element_text(size = 16)
+  ) + 
+  grids(linetype = "dashed") +
+  scale_x_discrete(labels=xticklabs) +
+  scale_fill_discrete(type=c("#EE442F", "#63ACBE"), labels=groupticklabs)
+
+ggsave(filename = "plots/ueq_categories_vs_system.png", plot = my_plot)
+
+my_plot
 ```
 
 #### Descriptive Data
@@ -330,11 +365,120 @@ data_long %>% select(id, system, ueq_cols) %>%
 ```{r}
 ```
 
-### Overall
+### UEQ Single Categories vs Image
 
 #### Visualize
 
 ```{r}
+ueq_cols <- c("UEQ_Efficiency_Score", "UEQ_Perspicuity_Score", "UEQ_Dependability_Score", "UEQ_Stimulation_Score", "UEQ_Novelty_Score", "UEQ_Haptics_Score", "UEQ_Adaptability_Score", "UEQ_Usefulness_Score", "UEQ_IntuitiveUse_Score", "UEQ_Clarity_Score")
+
+ueq_col_names <- c("Efficiency", "Perspicuity", "Dependability", "Stimulation", "Novelty", "Haptics", "Adaptability", "Usefulness", "Intuitive Use", "Clarity")
+
+x <- "Var"
+y <- "Val"
+group <- "image"
+title <- NULL
+xlab <- ""
+ylab <- "UEQ Score"
+xticklabs <- ueq_col_names
+groupticklabs <- c("Image A", "Image A")
+
+
+my_plot <- data_long %>% select(id, image, all_of(ueq_cols)) %>%
+  pivot_longer(., cols = all_of(ueq_cols), names_to = "Var", values_to = "Val") %>%
+  ggplot(aes_string(
+    x=x, 
+    y=y,
+    fill=group
+  )) +
+  geom_boxplot(
+    width = 0.6,
+    position=position_dodge(0.7),
+  ) + 
+  geom_dotplot(
+    binaxis  = "y",
+    binwidth = 0.2,
+    stackdir = "center",
+    position = position_dodge(0.7)
+  ) +
+  labs(
+    x=xlab,
+    y=ylab,
+    fill=NULL
+  ) + 
+  theme_pubr() +
+  theme(
+    axis.text.x = element_text(angle = -90, hjust = 0, vjust = 0.5),
+    axis.title.y = element_text(margin = margin(r = 10)),
+    text = element_text(size = 16)
+  ) + 
+  grids(linetype = "dashed") +
+  scale_x_discrete(labels=xticklabs) +
+  scale_fill_discrete(type=c("#EE442F", "#63ACBE"), labels=groupticklabs)
+
+ggsave(filename = "plots/ueq_categories_vs_image.png", plot = my_plot)
+
+my_plot
+```
+
+#### Descriptive Data
+
+```{r}
+```
+
+#### Test
+
+```{r}
+```
+
+## UEQ Overall
+
+### UEQ Overall vs System
+
+#### Visualize
+
+```{r}
+my_plot <- my_boxplot(data_long,
+    x = "system",
+    y = "UEQ_Overall_Score",
+    title = NULL,
+    ylab = "UEQ Score",
+    xlab = "",
+    xticklabs = c("Blender", "SandScaper")
+    )
+
+ggsave(filename = "plots/ueq_overall_vs_system.png", plot = my_plot)
+
+my_plot
+```
+
+#### Descriptive Data
+
+```{r}
+```
+
+#### Test
+
+```{r}
+```
+
+### UEQ Overall vs Image
+
+#### Visualize
+
+```{r}
+my_plot <- my_boxplot(data_long,
+    x = "image",
+    y = "UEQ_Overall_Score",
+    title = NULL,
+    ylab = "UEQ Score",
+    xlab = "",
+    xticklabs = c("Image A", "Image B")
+    )
+
+ggsave(filename = "plots/ueq_overall_vs_image.png", plot = my_plot)
+
+my_plot
 ```
 
 #### Descriptive Data
