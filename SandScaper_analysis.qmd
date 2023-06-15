@@ -1,5 +1,5 @@
 ---
-title: "SandScaper_analysis"
+title: "SandBox_analysis"
 format: 
   html: 
     toc: true
@@ -190,7 +190,7 @@ my_plot <- my_boxplot(data_long,
     title = NULL,
     ylab = "Modeling Time [seconds]",
     xlab = "",
-    xticklabs = c("Blender", "SandScaper")
+    xticklabs = c("Blender", "SandBox")
     )
 
 ggsave(filename = "plots/time_vs_system.png", plot = my_plot)
@@ -259,7 +259,7 @@ my_plot <- my_boxplot(data_long,
     title = NULL,
     ylab = "Result Satisfaction",
     xlab = "",
-    xticklabs = c("Blender", "SandScaper")
+    xticklabs = c("Blender", "SandBox")
     )
 
 ggsave(filename = "plots/result_vs_system.png", plot = my_plot)
@@ -333,7 +333,7 @@ title <- NULL
 xlab <- ""
 ylab <- "UEQ Score"
 xticklabs <- ueq_col_names
-groupticklabs <- c("Blender", "SandScaper")
+groupticklabs <- c("Blender", "SandBox")
 
 
 my_plot <- data_long %>% dplyr::select(id, system, all_of(ueq_cols)) %>%
@@ -458,7 +458,7 @@ my_plot <- my_boxplot(data_long,
     title = NULL,
     ylab = "UEQ Score",
     xlab = "",
-    xticklabs = c("Blender", "SandScaper")
+    xticklabs = c("Blender", "SandBox")
     )
 
 ggsave(filename = "plots/ueq_overall_vs_system.png", plot = my_plot)
