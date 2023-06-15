@@ -99,14 +99,14 @@ my_boxplot <- function(data, x, y, title, xlab, ylab, xticklabs) {
   ) + 
   theme(
     axis.title.y = element_text(margin = margin(r = 10)),
-    text = element_text(size = 16)
+    text = element_text(size = 24)
   ) +
   labs(
-    fill=xlab
+    fill=NULL
   ) +
   grids(linetype = "dashed") +
   scale_x_discrete(labels=xticklabs) + 
-  scale_fill_discrete(type=c("#EE442F", "#63ACBE"), labels=xticklabs) +
+  scale_fill_discrete(type=c("#EE442F", "#63ACBE"), labels=xticklabs, guide="none") +
   scale_shape_discrete(labels=xticklabs)
 
   return(my_plot)
